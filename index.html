@@ -1,0 +1,498 @@
+<!doctype html>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+
+		<title>reveal.js</title>
+
+		<link rel="stylesheet" href="css/reset.css">
+		<link rel="stylesheet" href="css/reveal.css">
+		<link rel="stylesheet" href="css/theme/black.css">
+		<link rel="stylesheet" href="css/custom.css">
+
+		<!-- Theme used for syntax highlighting of code -->
+		<link rel="stylesheet" href="lib/css/monokai.css">
+
+		<!-- Printing and PDF exports -->
+		<script>
+			var link = document.createElement( 'link' );
+			link.rel = 'stylesheet';
+			link.type = 'text/css';
+			link.href = window.location.search.match( /print-pdf/gi ) ? 'css/print/pdf.css' : 'css/print/paper.css';
+			document.getElementsByTagName( 'head' )[0].appendChild( link );
+		</script>
+	</head>
+	<body>
+		<div class="reveal">
+			<div class="slides">
+        <section>
+          <h2>What is Scripting</h2>
+        </section>
+
+        <section>
+          <section data-transition="none">
+            <h3>Scripting is:</h3>
+            <ul>
+              <li class="blue">Automation</li>
+              <li>Documentation</li>
+              <li>Iterative/Interactive</li>
+            </ul>
+
+            <aside class="notes" data-markdown>
+              When I think of scripting, I mostly think about automation,
+              either reducing the number of times I type a single command
+              or a sequence of them. That's partly about typing less, but it's
+              also about reducing the opportunity for mistakes. With a script
+              we can also include checks before something happens to validate
+              and add more safety than just running commands at a prompt.
+
+              We are also wrapping complexity, but this also needs to be done
+              carefully or at least transparently. Hiding complexity, as opposed
+              to wrapping it, can lead to a feeling of magic and that's usually
+              a bad feeling. Scripting gives the opportunity to see complexity
+              and also to copy/change and adapt it to different needs.
+
+              Being able to look at a script and see what it's doing provides
+              insight, piece of mind and frankly some education. One of the
+              greatest assets of the Elixir community is being able to click
+              directly from documentation to source code.
+            </aside>
+          </section>
+
+          <section data-transition="none">
+            <h3>Scripting is:</h3>
+            <ul>
+              <li>Automation</li>
+              <li class="blue">Documentation</li>
+              <li>Iterative/Interactive</li>
+            </ul>
+
+            <aside class="notes" data-markdown>
+              By writing this down we also end up with a kind of documentation or
+              at least a record of what we did that someone else can see. So even when
+              we do something only once, it can be worth writing a script. There's
+              also the not so infrequent occurance that we will have to do something
+              again, or a variant and having a place to start can save us a lot of
+              time.
+            </aside>
+          </section>
+
+          <section data-transition="none">
+            <h3>Scripting is:</h3>
+            <ul>
+              <li>Automation</li>
+              <li>Documentation</li>
+              <li class="blue">Iterative/Interactive</li>
+            </ul>
+            <aside class="notes" data-markdown>
+              We also have the opportunity to prototype and test a recipe
+              by working through a process with near interactive response.
+              This is an important quality, making changes, trying them,
+              making changes, and so on.
+
+              This is also about defining entry points. It's pretty frequent
+              that a script is an entry point into a system, long running or
+              otherwise. A script being short lived or one off takes responsibility
+              for setting up the environment, finding executable, determining
+              required pre-conditions before the real work begins. A lot of programs
+              we run are actually scripts that do this work and then fork or
+              exec the process that does the real work.
+            </aside>
+          </section>
+
+        </section>
+
+
+				<section>
+          <h2>Types of scripting for Elixir</h2>
+          <div>
+            <ul>
+              <li class="fragment fade-in">
+                In a project
+                <ul>
+                  <li class="fragment fade-in">
+                    <code>mix run</code>
+                  </li>
+                </ul>
+              </li>
+              <li class="fragment fade-in">
+                BEAM bundle
+                <ul>
+                  <li class="fragment fade-in">
+                    <code>mix escript.build</code>
+                  </li>
+                  <li class="fragment fade-in">
+                    <code>mix escript.install</code>
+                  </li>
+                </ul>
+              </li>
+              <li class="fragment fade-in">
+                Stand-alone
+                <ul>
+                  <li class="fragment fade-in">
+                    <code>#!/usr/bin/env elixir</code>
+                  </li>
+                </ul>
+              </li>
+            </ul>
+          </div>
+          <aside class="notes" data-markdown>
+          </aside>
+
+        </section>
+
+				<section>
+          <h2>Stand-alone scripts</h2>
+          <ul>
+            <li>Instead of bash or other universal shells</li>
+            <li>Still depends on elixir/erlang being installed</li>
+          </ul>
+          <p>If requiring elixir is ok, the features are vastly better</p>
+          <aside class="notes" data-markdown>
+            We are going to focus on stand-alone scripts because they are the
+            most general and everything about them applies to in-project scripts.
+
+            A script that does one thing is no more complicated than adding the
+            interpreter directive and making the file executable.
+          </aside>
+        </section>
+
+        <section>
+          <h2>Basics of a script</h2>
+          <ul>
+            <li class="fragment">Make it executable: <code class="fragment">chmod +x <em>script</em></code></li>
+            <li class="fragment">Put it in your path or add a dir to PATH</li>
+            <li class="fragment">Basic switch parsing: <code class="fragment">OptionParser</code></li>
+          </ul>
+        </section>
+
+        <section>
+          <section>Basic Switch Parsing</section>
+          <section>
+            <code>OptionParser</code>
+            <pre><code class="elixir">iex> OptionParser.parse(["--debug"],
+  strict: [debug: :boolean], aliases: [ d: :debug ])
+{[debug: true], [], []}
+            </code></pre>
+            <ul>
+              <li>Typed switches</li>
+              <li>Strict/premissive switch parsing</li>
+              <li>Aliases ( -d to --debug )</li>
+              <li>Can accumulate repeated options with <code class="elixir">:keep</code></li>
+            </ul>
+          </section>
+
+          <section>
+            :strict vs. :switches
+            <p><code>:strict</code> will only parse options definied</p>
+            <p><code>:switches</code> will parse all <code>--</code> options</p>
+          </section>
+
+          <section>
+            <div>Switch types:</div>
+            <ul>
+              <li><code>:boolean</code></li>
+              <li><code>:count</code></li>
+              <li><code>:integer</code></li>
+              <li><code>:float</code></li>
+              <li><code>:string</code></li>
+            </ul>
+          </section>
+
+          <section>
+            <div>
+              The result tuple is: <pre><code class="elixir">{ parsed, argv, errors }</code></pre>
+            </div>
+          </section>
+
+          <section>
+            <code class="elixir">
+              { <span class="fragment highlight-blue">parsed</span>, argv, errors }
+            </code>
+            <div class="fragment fade-in">
+              <p>
+                Keyword list of the parsed options
+              </p>
+              <pre><code class="elixir">[ debug: true ]</code></pre>
+            </div>
+          </section>
+
+          <section>
+            <code class="elixir">{ parsed, <span class="fragment highlight-blue">argv</span>, errors }</code>
+            <p class="fragment fade-in">
+              positional arguments that OptionParser did not handle
+            </p>
+          </section>
+
+          <section>
+            <code class="elixir">{ parsed, argv, <span class="fragment highlight-blue">errors</span> }</code>
+            <p class="fragment fade-in">
+              a List of tuples for options that mismatch the types required.
+            </p>
+            <p class="fragment fade-in">
+              When using strict, undefined switches will end up here.
+            </p>
+          </section>
+
+          <aside class="notes" data-markdown>
+            Elixir has the built-in module OptionParser. This is where we start.
+          </aside>
+
+        </section>
+
+        <section>
+          <section>
+            <h2>Verbs and Switches</h2>
+
+            <p>Just parsing switches is not enough</p>
+            <p>Modern commands are verb oriented, mix and git are examples</p>
+          </section>
+          <section>
+            <pre><code>mix deps.get</code></pre>
+            <p>deps.get is the verb</p>
+          </section>
+          <section>
+            <p>combine options and verbs:</p>
+
+            <pre><code>myscript --some-option do-something</code></pre>
+
+            <aside class="notes" data-markdown>
+              Just parsing options is not really enough. It's the bare minimum, actually.
+
+              I like the modern way of consoldiating functions in a program or script as
+              a set of verbs, or subcommands. GIT is a good example of this approach.
+            </aside>
+
+          <aside class="notes" data-markdown>
+            In the vein of modern command line programs, like git, I like having a single program
+            with many verbs or actions that are related. Either related by task or context. If
+            we change from parse to parse_head, OptionParser will stop at the first non-dash argument
+            and return the rest as the argv part of the tuple. This means we can have a verb with
+            it's own arguments or even be able to pass options directly to other programs.
+          </aside>
+          </section>
+
+          <section data-markdown>
+            <h2>HELP!</h2>
+
+            A script is better with help
+
+            It's easy to forget the switches and verbs
+          </section>
+
+          <section>
+            The amount of code to do all this gets out of hand quickly.
+          </section>
+
+          <section>
+            With a macro, some DSL, we can make this easy:
+
+            <pre><code class="elixir">
+  @doc "rsync release to staging server."
+  command( "rsync" ) do
+    stage =
+      Keyword.fetch!( opts, :stage )
+      |> case do
+           << num::binary-1 >> -> "stagewebapi#{num}"
+           full -> full
+         end
+    app = Keyword.fetch!( opts, :app )
+    { version, 0 } = System.cmd( "_build/prod/rel/#{app}/bin/#{app}", ["version"] )
+    rdir = String.trim( version ) |> String.split(" ") |> Enum.join("-")
+    target = "#{stage}:#{rdir}"
+    IO.puts("Target: #{target}")
+    System.cmd( "rsync", [ "-a", "--stats",
+      "_build/prod/rel/#{app}/", "#{stage}:#{rdir}" ],
+      into: IO.stream( :stdio,:line ) )
+  end
+            </code></pre>
+
+          </section>
+        </section>
+
+        <section>
+          <section data-markdown>
+            The <code class="elixir">Scripting</code> module
+
+            * github: danj3/scripting
+            * hex.pm: scripting
+          </section>
+          <section data-markdown>
+            * In a project, add as a regular `dep`
+             * Will be available using `mix run`
+
+            * It's intended to be used stand alone too
+          </section>
+          <section>
+            <p>Any of these options work.<p>
+            <p>Choose one that suits your situation</p>
+            <p>Keep in mind, <code>elixir</code> and <code>erl</code> need to be in the PATH</p>
+          </section>
+          <section>
+            <h3>Copy/paste the code</h3>
+          </section>
+          <section>
+            <p>Pre-compile and place in the same path as your script</p>
+            <pre class="fragment fade-in"><code>
+$ elixirc lib/scripting.ex
+            </code></pre>
+            <pre class="fragment fade-in"><code>
+Code.prepend_path( Path.dirname( __ENV__.file ) )
+            </code></pre>
+          </section>
+
+          <section>
+            <p>Pre-compile and put in a common location</p>
+            <pre class="fragment fade-in"><code>
+$ elixirc lib/scripting.ex
+$ cp Elixir.Scripting.beam ~/ebin
+            </code></pre>
+            <pre class="fragment fade-in"><code>
+Code.prepend_path( Path.join( System.user_home, "ebin" ) )
+            </code></pre>
+          </section>
+        </section>
+
+        <section>
+          <section>
+            Basic structure
+            <pre><code class="elixir">
+Code.prepend_path(".")
+defmodule Example do
+  use Scripting
+  @switches [ app: :string ]
+  @aliases [ a: :app ]
+
+  @doc "help documentation for this verb"
+  command( "verb", [ "alias" ] ) do
+    IO.inspect( args ) # args after verb
+    IO.inspect( opts ) # parsed switches that precede the verb
+  end
+
+  command_default() # handles unknown verbs
+end
+Example.run()
+            </code></pre>
+          </section>
+          <section>
+            <pre><code>
+Help banner (use @moduledoc to customize)
+  verb ( alias )
+	help documentation for this verb
+
+  help ( h )
+
+
+(define help_footer to add a footer)
+            </code></pre>
+          </section>
+          <section>
+            <pre><code>
+$ elixir ./example2.exs -a something verb positional
+["positional"]
+[app: "something"]
+            </code></pre>
+          </section>
+        </section>
+
+        <section>
+          <section>
+            <h2>Types of Commands</h2>
+
+            <ul>
+              <li class="fragment fade-in">All Elixir/Erlang methods</li>
+              <li class="fragment fade-in">Running external programs</li>
+              <li class="fragment fade-in">Interactive programs</li>
+            </ul>
+            <aside class="notes" data-markdown>
+              Let's look at the types of work a script can do.
+
+              The simplest case is just using built-in modules and functions
+              to do something. It might be something as simple as updating
+              a file, creating a directory.
+
+              The more common case is running external programs that are either
+              unix provided or running something in the context of a project.
+              Such as running a mix command.
+
+              The thorny problem is running interactive programs, specifically
+              terminal programs that need a tty. The BEAM is not set up to
+              do this kind of thing. More on this later.
+            </aside>
+          </section>
+
+          <section>
+            <h2>Elixir Only</h2>
+            <pre><code class="elixir">
+defmodule Example do
+  use Scripting
+
+  @switches []
+  @aliases []
+
+  command( "find-program", [ "f" ] ) do
+    [ prg ] = args
+    System.find_executable( prg )
+    |> IO.puts
+  end
+
+  command_default()
+end
+
+Example.run
+            </code></pre>
+          </section>
+
+          <section>
+            <h2>External Command</h2>
+            <pre><code class="elixir">
+  command( "release", [ "rel" ] ) do
+    [ project ] = args
+    System.cmd( "mix", [ "release", "--overwrite" ],
+      env: [ { "MIX_ENV", "prod" } ],
+      cd: project,
+      into: IO.stream( :stdio, :line )
+    )
+  end
+            </code></pre>
+          </section>
+
+          <section>
+            <h2>An interactive program</h2>
+            <pre><code class="elixir">
+  command( "emacs" ) do
+    System.cmd( "tmux",
+      [ "new-window", "-t", tmux_session(),
+        "emacs " <> Enum.join( args, " " )
+       ],
+    into: IO.stream( :stdio, :line ) )
+  end
+            </code></pre>
+            <p class="fragment fade-in">
+              Shell escaping can be a problem for <code>args</code>
+            </p>
+          </section>
+
+        </section>
+
+			</div>
+		</div>
+
+		<script src="js/reveal.js"></script>
+
+		<script>
+			// More info about config & dependencies:
+			// - https://github.com/hakimel/reveal.js#configuration
+			// - https://github.com/hakimel/reveal.js#dependencies
+			Reveal.initialize({
+				dependencies: [
+					{ src: 'plugin/markdown/marked.js' },
+					{ src: 'plugin/markdown/markdown.js' },
+					{ src: 'plugin/notes/notes.js', async: true },
+					{ src: 'plugin/highlight/highlight.js', async: true }
+				]
+			});
+		</script>
+	</body>
+</html>
