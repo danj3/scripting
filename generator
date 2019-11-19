@@ -1,0 +1,153 @@
+#!/usr/bin/env elixir
+# -*- elixir -*-
+# Build embedding preamble for scripting
+[ { module, binary } ] = Code.compile_file("lib/scripting.ex")
+Process.put(:scripting_binary, binary)
+
+defmodule Generator do
+  use Scripting
+
+  @switches [ output_file: :string ]
+  @aliases [ o: :output_file ]
+
+  @moduledoc """
+  A suite of commands for generating starting scaffolding for a Scripting based
+  script or to add Script module embedding to an existing script.
+
+  For loading a companion BEAM file instead of embedding, options are:
+
+  1. Put Elixir.Scripting.beam in the same directory as your script, add
+    this line to the top:
+
+    Code.prepend_path( Path.dirname( __ENV__.file ) )
+
+  2. Put Elixir.Scripting.beam in a common direcory, such as ebin
+    in the user's home dir:
+
+    Code.prepend_path( Path.join( System.user_home(), "ebin"))
+
+  Either way, generate the beam file with:
+  elixirc lib/scripting.ex
+
+  """
+  @common_template """
+  defmodule <%= module %> do
+    use Scripting
+    @switches []
+    @aliases []
+    @moduledoc "Put the documentation header here"
+    def help_footer, do: "end of help for <%= module %>"
+
+    @doc "Sample command starting point"
+    command( "command_name", [ "cn"] ) do
+      IO.inspect( [ positional_args: args, parsed_options: opts ])
+      IO.puts("This is your first command")
+    end
+
+    command_default()
+  end
+  <%= module %>.run()
+  """
+
+  @preamble_start "#!/usr/bin/env elixir\n# -- Scripting preamble start --\n"
+  @preamble_end "\n# -- Scripting preamble end --\n\n"
+
+  def help_footer do
+    """
+    Option aliases:
+    #{inspect(@aliases, pretty: true)}
+    """
+  end
+  def write_output( content, out ) do
+    File.write( out, content )
+    File.chmod!( out, 0o755 )
+    IO.puts( "wrote #{out}")
+  end
+
+  def generate_with_source( body ) do
+      @preamble_start <>
+      "# by " <> __ENV__.file <> "\n" <>
+      File.read!("lib/scripting.ex") <>
+      @preamble_end <>
+      body
+  end
+
+  def generate_with_beam( body ) do
+    scripting_beam = Base.encode64(Process.get(:scripting_binary))
+
+    @preamble_start <>
+    "# by " <> __ENV__.file <> "\n" <>
+    """
+      scripting_beam="#{scripting_beam}"
+      :code.load_binary( Scripting, 'Elixir.Scripting.beam', Base.decode64!(scripting_beam))
+      """ <>
+      @preamble_end <>
+      body
+  end
+
+  @doc """
+  <module name>
+  Generate an elixir script file with Scripting embedded and include
+  the basic scaffolding
+  Required options:
+  --output-file <filename>
+  """
+  command("generate-with-beam", [ "gb" ]) do
+    out = Keyword.fetch!(opts, :output_file)
+    [ module ] = args
+
+    EEx.eval_string( @common_template, module: module )
+    |> generate_with_beam()
+    |> write_output( out )
+  end
+
+  @doc """
+  <module name>
+  Generate scripting scaffold with source of Scripting module
+  required options:
+  --output-file <filename>
+  """
+  command("generate-with-source", [ "gs" ]) do
+    out = Keyword.fetch!(opts, :output_file)
+    [ module ] = args
+
+
+    EEx.eval_string( @common_template, module: module)
+    |> generate_with_source
+    |> write_output( out )
+  end
+
+  @doc """
+  <input file>
+  Embed a bare script that needs Scripting with required preamble to
+  make it portable
+  required options:
+  --output-file <filename> (should be different than source)
+  """
+  command("embed-with-source", [ "es" ]) do
+    out = Keyword.fetch!(opts, :output_file)
+    [ input_file ] = args
+
+    File.read!(input_file)
+    |> generate_with_source()
+    |> write_output( out )
+  end
+
+  @doc """
+  <input file>
+  Embed a bare script that needs Scripting with BEAM embedded in output
+  required options:
+  --output-file <filename> (should be different than source)
+  """
+  command("embed-with-beam", [ "eb" ]) do
+    out = Keyword.fetch!(opts, :output_file)
+    [ input_file ] = args
+
+    File.read!(input_file)
+    |> generate_with_beam()
+    |> write_output( out )
+  end
+
+  command_default()
+end
+Generator.run()

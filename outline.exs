@@ -1,4 +1,3 @@
-Code.prepend_path(".")
 defmodule Example do
   use Scripting
   @switches [ app: :string ]

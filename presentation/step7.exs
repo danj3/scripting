@@ -1,4 +1,4 @@
-gdefmodule Example do
+defmodule Example do
   use Scripting
 
   @switches []
