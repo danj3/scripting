@@ -87,7 +87,7 @@ Install as a dependency with:
 ```elixir
 def deps do
   [
-    {:scripting, "~> 0.1.0"}
+    {:scripting, "~> 1.0.0"}
   ]
 end
 ```
