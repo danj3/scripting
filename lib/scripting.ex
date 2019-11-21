@@ -1,4 +1,5 @@
 defmodule Scripting do
+  @moduledoc "Simplify scripting portably with no dependency. See https://hexdocs.pm/scripting"
   defmacro __using__( _ ) do
     Module.register_attribute( __CALLER__.module,
       :command_list,
