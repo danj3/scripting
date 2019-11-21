@@ -49,7 +49,11 @@ defmodule Generator do
   <%= module %>.run()
   """
 
-  @preamble_start "#!/usr/bin/env elixir\n# -- Scripting preamble start --\n"
+  # erlang options:
+  # +B disable emulator break handler
+  # -noshell runs without a shell so that Unix pipes work properly
+  @interpreter_directive ~S|#!/usr/bin/env elixir --erl +B --erl -noshell| <> "\n"
+  @preamble_start @interpreter_directive <> "# -- Scripting preamble start --\n"
   @preamble_end "\n# -- Scripting preamble end --\n\n"
 
   def help_footer do
@@ -65,24 +69,30 @@ defmodule Generator do
   end
 
   def generate_with_source( body ) do
-      @preamble_start <>
-      "# by " <> __ENV__.file <> "\n" <>
-      File.read!("lib/scripting.ex") <>
-      @preamble_end <>
+    [ @preamble_start,
+      "# by ",
+      __ENV__.file,
+      "\n",
+      File.read!("lib/scripting.ex"),
+      @preamble_end,
       body
+    ]
   end
 
   def generate_with_beam( body ) do
     scripting_beam = Base.encode64(Process.get(:scripting_binary))
+    otp = :erlang.system_info(:otp_release)
 
-    @preamble_start <>
-    "# by " <> __ENV__.file <> "\n" <>
+    [ @preamble_start,
+      "if :erlang.system_info(:otp_release) < '", otp,
+      "', do: raise ~S|The emulator is less than the included BEAM file|\n",
+      "# by " <> __ENV__.file <> " on OTP:#{otp}\n",
     """
-      scripting_beam="#{scripting_beam}"
-      :code.load_binary( Scripting, 'Elixir.Scripting.beam', Base.decode64!(scripting_beam))
-      """ <>
-      @preamble_end <>
-      body
+    scripting_beam="#{scripting_beam}"
+    :code.load_binary( Scripting, 'Elixir.Scripting.beam', Base.decode64!(scripting_beam))
+    """,
+      @preamble_end,
+      body ]
   end
 
   @doc """
@@ -114,6 +124,21 @@ defmodule Generator do
 
     EEx.eval_string( @common_template, module: module)
     |> generate_with_source
+    |> write_output( out )
+  end
+
+  @doc """
+  <module name>
+  Generate a template for a script with the given module name.
+  Will create a file with the given module name by default.
+  options:
+  --output-file <filename> for a different output file
+  """
+  command("generate-template", ["g", "gt"] ) do
+    [ module ] = args
+    m = String.capitalize(module)
+    out = String.downcase(module)
+    [ @interpreter_directive, EEx.eval_string( @common_template, module: m ) ]
     |> write_output( out )
   end
 
