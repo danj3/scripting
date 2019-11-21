@@ -96,5 +96,5 @@ To develop independent script, clone this repo:
 
 `git clone https://github.com/danj3/scripting`
 
-Documentation is at [https://hexdocs.pm/scripting](https://hexdocs.pm/scripting).
+Documentation is at [https://hexdocs.pm/scripting/](https://hexdocs.pm/scripting/).
 
